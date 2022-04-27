@@ -17,7 +17,6 @@ import GraphView from './graph';
 
 export default function Home() {
 
-  const TX_SHOW = 10
   const TX_LIMIT = 10000
   // const wsWeb3 = createAlchemyWeb3('wss://eth-mainnet.alchemyapi.io/v2/gCJRKmBsQwI8cu_7kr7Ng9VIvsRB_yop');
   // wsWeb3.eth.getBlockNumber().then(console.log);
@@ -31,10 +30,14 @@ export default function Home() {
   const [lastBlock, setLastBlock] = useState()
   const [txHistory, setTxHistory] = useState([])
 
+  const [showNum, setShowNum] = useState(10)
+  const [customPercent, setCustomPercent] = useState()
+  
   const parallax = useRef(null)
 
   useEffect(() => {
-      setTxHistory(prev => prev.concat(lastTx))
+      //replace same nonce
+      setTxHistory(prev => prev?.filter(tx=> !(tx.from == lastTx.from && tx.nonce == lastTx.nonce)).concat(lastTx))
   }, [lastTx])
   
 
@@ -74,8 +77,9 @@ export default function Home() {
       //use block hash to find transaction
       if(!err ){
         const blockDetail = await web3.eth.getBlock(result.hash)
+        setLastBlock(blockDetail)
         //update tx History
-        setTxHistory(txlist => txlist.filter(tx => !blockDetail.transactions.includes(tx.hash) ))        
+        setTxHistory(txlist => txlist.filter(tx => !blockDetail.transactions.includes(tx?.hash) ))        
       }
     })
     setBlockSubscription(blockSubscription)
@@ -89,6 +93,7 @@ export default function Home() {
       const temp = {
           from: result.from,
           hash: result.hash,
+          nonce: result.nonce,
           gas: Number(result.gas),
           gasPrice: toGwei(result.gasPrice),
           maxFeePerGas: toGwei(result.maxFeePerGas),
@@ -141,9 +146,9 @@ export default function Home() {
   function Feature({ title, gas, gasPrice, maxFee, maxPriorityFee, time, ...rest }) {
     return (
       <Box display="flex" gap={5} p={5} shadow='md' borderWidth='1px' {...rest}>
-        <Heading fontSize='xl' w="480px">{title}</Heading>
+        <Heading fontSize='l' w="600px">{title}</Heading>
         <Text w="120px">Gas: {gas}</Text>
-        <Text w="150px">GasPrice: {gasPrice}</Text>
+        {/* <Text w="150px">GasPrice: {gasPrice}</Text> */}
         <Text w="180px">MaxFee: {maxFee}</Text>
         <Text w="180px">MaxPriorFee: {maxPriorityFee}</Text>
         <Text w="150px">Time: {time}</Text>
@@ -161,36 +166,35 @@ export default function Home() {
   }
 
   function ListView() {
+
+  
     return (
         <div>
           <Stack spacing={5} direction='row' textAlign={"center"} justifyContent="center" mb={5}>
-            <Card title="MIN" value={quartile(txHistory.map(ele => ele?.maxPriorityFeePerGas), 0)} w="200px"/>
-            <Card title="LOWER Q" value={quartile(txHistory?.map(ele  => ele?.maxPriorityFeePerGas), .25)} w="200px"/>
-            <Card title="Median" value={quartile(txHistory?.map(ele => ele?.maxPriorityFeePerGas), .5)} w="200px"/>
-            <Card title="UPPER Q" value={quartile(txHistory?.map(ele  => ele?.maxPriorityFeePerGas), .75)} w="200px"/>
-            <Card title="MAX" value={quartile(txHistory?.map(ele  => ele?.maxPriorityFeePerGas), 1)} w="200px"/>
-            {/* Summary */}
-            <></>
+                {/* <Card title="MIN" value={quartile(txHistory.map(ele => ele?.maxPriorityFeePerGas), 0)} w="200px"/> */}
+                <Card title="LOWER Q" value={quartile(txHistory?.map(ele  => ele?.maxPriorityFeePerGas), .25)} w="200px"/>
+                <Card title="Median" value={quartile(txHistory?.map(ele => ele?.maxPriorityFeePerGas), .5)} w="200px"/>
+                <Card title="UPPER Q" value={quartile(txHistory?.map(ele  => ele?.maxPriorityFeePerGas), .75)} w="200px"/>
+                {/* <Card title="MAX" value={quartile(txHistory?.map(ele  => ele?.maxPriorityFeePerGas), 1)} w="200px"/> */}
+                <Box gap={5} p={3} shadow='md' borderWidth='1px' w="350px" textAlign={"left"}>
+                  <Text fontSize='l'>Current Block</Text>
+                  <Text fontSize='l'>{lastBlock?.hash}</Text>
+                </Box>
+                <Box gap={5} p={3} shadow='md' borderWidth='1px' w="200px" textAlign={"left"}>
+                  <Text fontSize='l'>Number to Show</Text>
+                  <Input placeholder='TOP#'  value={showNum} onChange={(event)=>setShowNum(event.target.value)} />
+                </Box>
           </Stack>  
-          {/* {lastTx &&
-          <Feature
-            mb={10}
-            title={lastTx.from}
-            gas={lastTx.gas}
-            gasPrice={lastTx.gasPrice}
-            maxFee={lastTx.maxFeePerGas}
-            maxPriorityFee={lastTx.maxPriorityFeePerGas}
-            time={lastTx.timestamp}
-          />} */}
+
           {txHistory
           .sort(compareGas)
-          .slice(0, TX_SHOW)
+          .slice(0, showNum)
           .map((ele, idx) => 
             <div key={idx}>
             {ele &&
               <Feature
                 mb={4}
-                title={ele.from}
+                title={ele.hash}
                 gas={ele.gas}
                 gasPrice={ele.gasPrice}
                 maxFee={ele.maxFeePerGas}
@@ -230,7 +234,7 @@ export default function Home() {
             </GridItem>
           </Grid >
         {/* Parallax  */}
-          <Box display="flex" justifyContent="center">
+          <Box justifyContent="center">
             <ListView />
 
             {/* <Parallax pages={2} horizontal ref={parallax} >
