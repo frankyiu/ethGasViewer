@@ -1,3 +1,50 @@
 {
-  "extends": "next/core-web-vitals"
+  "parser": "@babel/eslint-parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "modules": true
+    }
+  },
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+  "extends": [
+    "plugin:@next/next/recommended",
+    "eslint:recommended",
+    "airbnb",
+    "plugin:react/jsx-runtime"
+  ],
+  "rules": {
+    "camelcase": [2, { "properties": "always" }],
+    "quotes": [2, "single"],
+    "curly": 2,
+    "eqeqeq": [2, "always"],
+    "no-multiple-empty-lines": 2,
+    "padding-line-between-statements": [2,
+      {"blankLine": "always", "prev": ["const", "let", "var"], "next": "*"},
+      {"blankLine": "any", "prev": ["const", "let", "var"], "next": ["const", "let", "var"]},
+      {"blankLine": "always", "prev": ["*"], "next": "return"}
+    ],
+    "spaced-comment": [2, "always"],
+    "no-trailing-spaces": 2,
+    "arrow-spacing": [2, { "before": true, "after": true }],
+    "comma-dangle": [2, {
+      "arrays": "always-multiline",
+      "objects": "always-multiline",
+      "imports": "always-multiline",
+      "exports": "always-multiline",
+      "functions": "never"
+    }],
+    "react/jsx-filename-extension": [0, { "extensions": [".js", ".jsx"] }],
+    "react/jsx-props-no-spreading": 0,
+    "react/prop-types": 0,
+    "react/jsx-one-expression-per-line": 0,
+    "react/no-array-index-key": 1,
+    "linebreak-style": 0,
+    "no-unused-vars": [2, { "varsIgnorePattern": "React" }],
+    "max-len": 0
+  }
 }
