@@ -19,25 +19,23 @@ export default function Home() {
 
   const TX_LIMIT = 10000
   // const wsWeb3 = createAlchemyWeb3('wss://eth-mainnet.alchemyapi.io/v2/gCJRKmBsQwI8cu_7kr7Ng9VIvsRB_yop');
-  // wsWeb3.eth.getBlockNumber().then(console.log);
 
   const [blockSubscription, setBlockSubscription] = useState(null);
   const [subscription, setSubscription] = useState(null);
-  // const [web3, setWeb3] = useState(null);
   const [apiKey, setApiKey] = useState('')
   const [address, setAddress] = useState('')
   const [lastTx, setLastTx] = useState()
   const [lastBlock, setLastBlock] = useState()
   const [txHistory, setTxHistory] = useState([])
 
+  // const [customPercent, setCustomPercent] = useState()
   const [showNum, setShowNum] = useState(10)
-  const [customPercent, setCustomPercent] = useState()
-  
+
   const parallax = useRef(null)
 
   useEffect(() => {
       //replace same nonce
-      setTxHistory(prev => prev?.filter(tx=> !(tx.from == lastTx.from && tx.nonce == lastTx.nonce)).concat(lastTx))
+      setTxHistory(prev => prev?.filter(tx=> !(tx?.from == lastTx.from && tx?.nonce == lastTx.nonce)).concat(lastTx))
   }, [lastTx])
   
 
@@ -54,8 +52,8 @@ export default function Home() {
       return 
     const web3 = createAlchemyWeb3(`wss://eth-mainnet.alchemyapi.io/v2/${apiKey}`)
     //subscribe logic
-    setTxHistory([]);
     setLastTx();
+    setTxHistory([]);
 
     //subBlock
     subBlock();
@@ -165,27 +163,11 @@ export default function Home() {
     )
   }
 
-  function ListView() {
 
+  function ListView({txHistory}) {
   
     return (
         <div>
-          <Stack spacing={5} direction='row' textAlign={"center"} justifyContent="center" mb={5}>
-                {/* <Card title="MIN" value={quartile(txHistory.map(ele => ele?.maxPriorityFeePerGas), 0)} w="200px"/> */}
-                <Card title="LOWER Q" value={quartile(txHistory?.map(ele  => ele?.maxPriorityFeePerGas), .25)} w="200px"/>
-                <Card title="Median" value={quartile(txHistory?.map(ele => ele?.maxPriorityFeePerGas), .5)} w="200px"/>
-                <Card title="UPPER Q" value={quartile(txHistory?.map(ele  => ele?.maxPriorityFeePerGas), .75)} w="200px"/>
-                {/* <Card title="MAX" value={quartile(txHistory?.map(ele  => ele?.maxPriorityFeePerGas), 1)} w="200px"/> */}
-                <Box gap={5} p={3} shadow='md' borderWidth='1px' w="350px" textAlign={"left"}>
-                  <Text fontSize='l'>Current Block</Text>
-                  <Text fontSize='l'>{lastBlock?.hash}</Text>
-                </Box>
-                <Box gap={5} p={3} shadow='md' borderWidth='1px' w="200px" textAlign={"left"}>
-                  <Text fontSize='l'>Number to Show</Text>
-                  <Input placeholder='TOP#'  value={showNum} onChange={(event)=>setShowNum(event.target.value)} />
-                </Box>
-          </Stack>  
-
           {txHistory
           .sort(compareGas)
           .slice(0, showNum)
@@ -235,7 +217,22 @@ export default function Home() {
           </Grid >
         {/* Parallax  */}
           <Box justifyContent="center">
-            <ListView />
+            <Stack spacing={5} direction='row' textAlign={"center"} justifyContent="center" mb={5}>
+                  {/* <Card title="MIN" value={quartile(txHistory.map(ele => ele?.maxPriorityFeePerGas), 0)} w="200px"/> */}
+                  <Card title="LOWER Q" value={quartile(txHistory?.map(ele  => ele?.maxPriorityFeePerGas), .25)} w="200px"/>
+                  <Card title="Median" value={quartile(txHistory?.map(ele => ele?.maxPriorityFeePerGas), .5)} w="200px"/>
+                  <Card title="UPPER Q" value={quartile(txHistory?.map(ele  => ele?.maxPriorityFeePerGas), .75)} w="200px"/>
+                  {/* <Card title="MAX" value={quartile(txHistory?.map(ele  => ele?.maxPriorityFeePerGas), 1)} w="200px"/> */}
+                  <Box gap={5} p={3} shadow='md' borderWidth='1px' w="350px" textAlign={"left"}>
+                    <Text fontSize='l'>Current Block</Text>
+                    <Text fontSize='l'>{lastBlock?.hash}</Text>
+                  </Box>
+                  <Box gap={5} p={3} shadow='md' borderWidth='1px' w="200px" textAlign={"left"}>
+                    <Text fontSize='l'>Number to Show</Text>
+                    <Input placeholder='TOP#'  value={showNum} onChange={(e) => setShowNum(e.target.value)} />
+                  </Box>
+            </Stack>
+            <ListView txHistory={txHistory}/>
 
             {/* <Parallax pages={2} horizontal ref={parallax} >
               <ParallaxLayer
