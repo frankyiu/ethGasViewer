@@ -152,6 +152,7 @@ export default function Home() {
     // subscribe logic
     setTxHistory([]);
     setLastTx();
+    setTxHistory([]);
 
     // subBlock
     subBlock();
@@ -161,6 +162,7 @@ export default function Home() {
         const tx = {
           from: result.from,
           hash: result.hash,
+          nonce: result.nonce,
           gas: Number(result.gas),
           gasPrice: toGwei(result.gasPrice),
           maxFeePerGas: toGwei(result.maxFeePerGas),
@@ -282,7 +284,6 @@ export default function Home() {
             </ParallaxLayer>
           </Parallax> */}
         </Box>
-
       </main>
     </div>
   );
