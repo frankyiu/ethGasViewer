@@ -48,6 +48,27 @@ export default function Home() {
     return !(tx.from === lastTx.from && tx.nonce === lastTx.nonce);
   };
 
+  const createTxObject = (err, result) => {
+    if (!err) {
+      const tx = {
+        from: result.from,
+        hash: result.hash,
+        nonce: result.nonce,
+        gas: Number(result.gas),
+        gasPrice: toGwei(result.gasPrice),
+        maxFeePerGas: toGwei(result.maxFeePerGas),
+        maxPriorityFeePerGas: toGwei(result.maxPriorityFeePerGas),
+        timestamp: (new Date()).toLocaleTimeString('en-US'),
+      };
+
+      if (tx.maxPriorityFeePerGas) {
+        setLastTx(tx);
+      }
+    }
+  };
+
+  const compareGas = (a, b) => b.maxPriorityFeePerGas - a.maxPriorityFeePerGas;
+
   useEffect(() => {
     // replace same nonce
     setTxHistory(
@@ -72,7 +93,7 @@ export default function Home() {
 
         setLastBlock(blockDetail);
 
-        const isNotInBlockDetail = (tx) => !blockDetail.transactions.includes(tx?.hash);
+        const isNotInBlockDetail = (tx) => (tx && !blockDetail.transactions.includes(tx.hash));
 
         // update tx History
         setTxHistory((txlist) => txlist.filter(isNotInBlockDetail));
@@ -94,42 +115,21 @@ export default function Home() {
     setLastTx();
     setTxHistory([]);
 
-    // subBlock
     subBlock();
-
-    const subCallback = (err, result) => {
-      if (!err) {
-        const tx = {
-          from: result.from,
-          hash: result.hash,
-          nonce: result.nonce,
-          gas: Number(result.gas),
-          gasPrice: toGwei(result.gasPrice),
-          maxFeePerGas: toGwei(result.maxFeePerGas),
-          maxPriorityFeePerGas: toGwei(result.maxPriorityFeePerGas),
-          timestamp: (new Date()).toLocaleTimeString('en-US'),
-        };
-
-        if (tx.maxPriorityFeePerGas) {
-          setLastTx(tx);
-        }
-      }
-    };
 
     // var blockSubscription  = web3.eth.subscribe("newBlockHeaders")
     let pendingTxSubscription = null;
 
     if (!address) {
-      // for blank
       pendingTxSubscription = web3.eth.subscribe(
         'alchemy_fullPendingTransactions',
-        subCallback
+        createTxObject
       );
     } else {
       pendingTxSubscription = web3.eth.subscribe(
         'alchemy_filteredFullPendingTransactions',
         { address },
-        subCallback
+        createTxObject
       );
     }
 
@@ -168,8 +168,6 @@ export default function Home() {
 
     unSubscribe();
   };
-
-  const compareGas = (a, b) => b.maxPriorityFeePerGas - a.maxPriorityFeePerGas;
 
   // const scroll = (to) => {
   //   console.log(parallax.current);
